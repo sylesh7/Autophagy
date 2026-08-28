@@ -1,0 +1,99 @@
+# Pattern 2 from the README: the orphaned duplicate.
+#
+# Two agents spun up independently, both working the same task because nothing
+# coordinated them. Both report normal activity and both complete work, so
+# neither looks broken in isolation — the waste is only visible by correlating
+# task IDs across agents, which is exactly what a per-agent budget cap cannot do.
+#
+# The collision is real, not staged: both derive the current task ID from the
+# same wall-clock bucket, so they independently arrive at the same task and hold
+# it concurrently for the duration of the window.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: duplicate-agent-a
+  namespace: autophagy
+  labels:
+    app: duplicate-agent-a
+    autophagy.io/role: agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: duplicate-agent-a
+  template:
+    metadata:
+      labels:
+        app: duplicate-agent-a
+        autophagy.io/role: agent
+      annotations:
+        autophagy.io/agent-wallet: "0x863713Aac8a67Ea99C91E32e9B19dAb4EFBcc69E"
+        autophagy.io/agent-uri: "autophagy://agent/duplicate-agent-a"
+    spec:
+      containers:
+        - name: agent
+          image: busybox:1.36
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              while true; do
+                TASK="invoice-batch-$(( $(date +%s) / 30 ))"
+                echo "AUTOPHAGY attempt task=$TASK"
+                i=0
+                while [ $i -lt 300000 ]; do i=$((i + 1)); done
+                sleep 18
+                echo "AUTOPHAGY complete task=$TASK"
+                sleep 8
+              done
+          resources:
+            requests:
+              cpu: 150m
+              memory: 128Mi
+            limits:
+              cpu: 400m
+              memory: 256Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: duplicate-agent-b
+  namespace: autophagy
+  labels:
+    app: duplicate-agent-b
+    autophagy.io/role: agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: duplicate-agent-b
+  template:
+    metadata:
+      labels:
+        app: duplicate-agent-b
+        autophagy.io/role: agent
+      annotations:
+        autophagy.io/agent-wallet: "0x91A5e5f771BaCe4fAb45C158B15314a5D7fD9f67"
+        autophagy.io/agent-uri: "autophagy://agent/duplicate-agent-b"
+    spec:
+      containers:
+        - name: agent
+          image: busybox:1.36
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              while true; do
+                TASK="invoice-batch-$(( $(date +%s) / 30 ))"
+                echo "AUTOPHAGY attempt task=$TASK"
+                i=0
+                while [ $i -lt 300000 ]; do i=$((i + 1)); done
+                sleep 18
+                echo "AUTOPHAGY complete task=$TASK"
+                sleep 8
+              done
+          resources:
+            requests:
+              cpu: 150m
+              memory: 128Mi
+            limits:
+              cpu: 400m
+              memory: 256Mi

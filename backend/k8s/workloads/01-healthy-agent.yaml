@@ -1,0 +1,51 @@
+# Control agent: does real work and completes it.
+#
+# Present so the demo can show that Autophagy does NOT flag a healthy agent.
+# It burns genuine CPU between tasks, so its utilisation sits comfortably above
+# the over-allocation floor and no signature matches.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: healthy-agent
+  namespace: autophagy
+  labels:
+    app: healthy-agent
+    autophagy.io/role: agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: healthy-agent
+  template:
+    metadata:
+      labels:
+        app: healthy-agent
+        autophagy.io/role: agent
+      annotations:
+        autophagy.io/agent-wallet: "0x8e335875506D779056cE7665B33d0FFA9E5F03B6"
+        autophagy.io/agent-uri: "autophagy://agent/healthy-agent"
+    spec:
+      containers:
+        - name: agent
+          image: busybox:1.36
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              n=0
+              while true; do
+                n=$((n + 1))
+                TASK="ledger-sync-$n"
+                echo "AUTOPHAGY attempt task=$TASK"
+                # Real CPU work, not a sleep — this agent earns its allocation.
+                i=0
+                while [ $i -lt 400000 ]; do i=$((i + 1)); done
+                echo "AUTOPHAGY complete task=$TASK"
+                sleep 4
+              done
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 128Mi

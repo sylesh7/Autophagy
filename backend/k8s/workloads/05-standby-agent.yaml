@@ -1,0 +1,52 @@
+# The control case for the reasoning layer — and the most important workload here.
+#
+# By every measurable signal this pod is identical to 03-dead-allocation-agent:
+# idle, zero task activity, holding a real reservation. A static threshold has
+# no way to tell them apart and would flag both.
+#
+# The difference is intent, and it is declared: this is deliberately reserved
+# burst capacity. The Diagnostician is expected to read the annotation, weigh it
+# against the utilisation evidence, and return LEGITIMATE — which is the whole
+# argument for putting reasoning in the loop instead of a number.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: standby-agent
+  namespace: autophagy
+  labels:
+    app: standby-agent
+    autophagy.io/role: agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: standby-agent
+  template:
+    metadata:
+      labels:
+        app: standby-agent
+        autophagy.io/role: agent
+      annotations:
+        autophagy.io/agent-wallet: "0x97986ecb114da30D714801a403b49899e069C348"
+        autophagy.io/agent-uri: "autophagy://agent/standby-agent"
+        autophagy.io/standby: "true"
+        autophagy.io/standby-reason: >-
+          Reserved failover capacity for the settlement pipeline. Held warm
+          deliberately to absorb end-of-day batch spikes; idle between peaks is
+          the expected state, not a fault.
+    spec:
+      containers:
+        - name: agent
+          image: busybox:1.36
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              echo "agent-runtime v1.4.2 ready, holding as warm standby"
+              while true; do sleep 3600; done
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

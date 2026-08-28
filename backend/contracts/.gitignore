@@ -1,0 +1,12 @@
+node_modules/
+artifacts/
+cache/
+types/
+
+# Local simulated-chain deployments are throwaway.
+ignition/deployments/chain-31337/
+
+# Real-network deployment records (chain-84532) are committed on purpose: they
+# record which registry this project deployed to which chain, so the whole team
+# shares one registry instead of each clone deploying its own and fragmenting
+# agent efficiency history. Ignition also uses them to reconcile re-runs.

@@ -1,0 +1,11 @@
+node_modules/
+dist/
+*.log
+
+# Never commit real secrets. .env holds a funded private key and live API keys;
+# .env.bak and friends are copies of it. Only the placeholder example and the
+# dummy-valued test config are safe to track.
+.env
+.env.*
+!.env.example
+!.env.test

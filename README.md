@@ -160,11 +160,39 @@ The genuine substrate the Watcher observes. Not simulated — real pods, real sc
 ### metrics-server
 Standard Kubernetes component exposing live CPU/memory usage per pod. This is the same tool real production clusters use for autoscaling decisions — Autophagy reads from it, it doesn't reimplement it.
 
-### LLM Reasoning Layer (Diagnostician)
+### LLM Reasoning Layer (Diagnostician) — via OpenRouter
 Used specifically for the ambiguous judgment call — "is this waste or legitimate" — which a hard-coded threshold cannot answer reliably. This is the genuinely agentic part of the system, not decoration on top of a script.
 
-### EfficiencyRegistry (ERC-8004-pattern contract, public testnet)
-A lightweight identity + attestation registry, following the same shape as ERC-8004's Identity and Validation Registry components. Deployed to a public testnet (e.g., Base Sepolia) rather than implemented as novel cryptography — the goal is a genuine, verifiable public record, not a custom trust mechanism nobody can audit.
+Model calls are routed through **OpenRouter** (`https://openrouter.ai/api/v1/chat/completions`) rather than a single provider's SDK, so the Diagnostician's model can be swapped (e.g., between Claude, GPT, or an open-weight model) without changing any application code — only the `model` field in the request body and the `OPENROUTER_API_KEY` environment variable. This also means judges/demo backups can switch to a cheaper or faster model instantly if rate limits are hit live.
+
+```javascript
+const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+  method: "POST",
+  headers: {
+    "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    model: "anthropic/claude-sonnet-4.5", // swappable per demo/cost needs
+    messages: [
+      { role: "system", content: DIAGNOSTICIAN_SYSTEM_PROMPT },
+      { role: "user", content: JSON.stringify(anomalyPayload) }
+    ]
+  })
+});
+```
+
+### EfficiencyRegistry (ERC-8004-pattern contract, on Base Sepolia testnet)
+A lightweight identity + attestation registry, following the same shape as ERC-8004's Identity and Validation Registry components. Deployed to **Base Sepolia** (chain ID `84532`) rather than implemented as novel cryptography — the goal is a genuine, verifiable public record, not a custom trust mechanism nobody can audit.
+
+| Base Sepolia detail | Value |
+|---|---|
+| Chain ID | `84532` |
+| Public RPC | `https://sepolia.base.org` |
+| Block explorer | `https://sepolia.basescan.org` |
+| Faucet | `https://www.coinbase.com/faucets/base-sepolia-faucet` |
+
+Chosen specifically because it's a low-friction, well-supported L2 testnet with a reliable public faucet and explorer — judges can click through to `sepolia.basescan.org` and verify an attestation transaction themselves in real time during the demo.
 
 ### kubectl / Kubernetes client
 Used by the Negotiator to execute the real, human-approved corrective action against the live cluster.
@@ -209,6 +237,25 @@ Static explainer: the problem with budget-only limits, how the reasoning pipelin
 
 ### Data Flow
 Watcher polls on an interval → flags anomalies → Diagnostician call → Negotiator call on confirmed waste → human approval → real cluster action + on-chain attestation → history updates.
+
+### Environment Variables
+
+```
+# LLM reasoning
+OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxxxxxx
+OPENROUTER_MODEL=anthropic/claude-sonnet-4.5
+
+# Base Sepolia
+BASE_SEPOLIA_RPC_URL=https://sepolia.base.org
+BASE_SEPOLIA_CHAIN_ID=84532
+EFFICIENCY_REGISTRY_ADDRESS=0x...        # filled in after deployment
+BACKEND_SIGNER_PRIVATE_KEY=0x...         # funded via Base Sepolia faucet, server-side only
+
+# Cluster
+KUBE_CONTEXT=minikube
+```
+
+`OPENROUTER_API_KEY` is never exposed to the frontend — all Diagnostician calls happen server-side. `BACKEND_SIGNER_PRIVATE_KEY` funds and signs the `attestIncident()` transactions and should be a dedicated, minimally-funded testnet wallet only.
 
 ---
 
@@ -269,7 +316,7 @@ Owns `EfficiencyRegistry.sol`, testnet deployment, the dashboard, the demo page,
 
 **Minute 2 — Trigger real misbehavior.** Start the real retry-loop agent against the live cluster. Watch Watcher flag it, Diagnostician explain its reasoning on screen ("14 attempts, 0 completions — high confidence retry loop, not intentional load"), and Negotiator surface the real calculated cost.
 
-**Minute 3 — Approve and prove it's real.** Click approve. Show the real `kubectl` action landing (re-query the cluster, state has actually changed). Then show the on-chain attestation on the testnet explorer — a permanent, public record of this exact incident, checkable by anyone, not just visible in this dashboard.
+**Minute 3 — Approve and prove it's real.** Click approve. Show the real `kubectl` action landing (re-query the cluster, state has actually changed). Then open `sepolia.basescan.org` live and show the `IncidentAttested` transaction — a permanent, public record of this exact incident on Base Sepolia, checkable by anyone, not just visible in this dashboard.
 
 Closing line: *"Budgets check how much was spent. Autophagy checks whether the work was real — and remembers, publicly, when it wasn't."*
 
@@ -295,6 +342,11 @@ Cloud cost optimization tooling (AWS Cost Explorer, GCP Recommender, Azure Advis
 | Minikube | `https://minikube.sigs.k8s.io/docs/` |
 | ERC-8004 | `https://eips.ethereum.org/EIPS/eip-8004` |
 | Kubernetes resource management | `https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/` |
+| OpenRouter API docs | `https://openrouter.ai/docs` |
+| OpenRouter model list | `https://openrouter.ai/models` |
+| Base Sepolia docs | `https://docs.base.org/network-information` |
+| Base Sepolia faucet | `https://www.coinbase.com/faucets/base-sepolia-faucet` |
+| Base Sepolia explorer | `https://sepolia.basescan.org` |
 
 ---
 
