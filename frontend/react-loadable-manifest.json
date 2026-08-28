@@ -1,0 +1,39 @@
+{
+  "components\\SiteScripts.tsx -> gsap": {
+    "id": 7605,
+    "files": [
+      "static/chunks/c15bf2b0.2c4774629432dc08.js",
+      "static/chunks/605.8a68597bd40a9232.js"
+    ]
+  },
+  "components\\SiteScripts.tsx -> gsap/ScrollTrigger": {
+    "id": 5580,
+    "files": [
+      "static/chunks/580.70b7c25d9cf96590.js"
+    ]
+  },
+  "components\\SiteScripts.tsx -> lenis": {
+    "id": 2691,
+    "files": [
+      "static/chunks/691.0b7c38b0d873a39e.js"
+    ]
+  },
+  "components\\SiteScripts.tsx -> lottie-web": {
+    "id": 9081,
+    "files": [
+      "static/chunks/dc112a36.f9568d850c3f1477.js"
+    ]
+  },
+  "node_modules\\next\\dist\\client\\index.js -> ../pages/_app": {
+    "id": 5139,
+    "files": [
+      "static/chunks/139.7a5a8e93a21948c1.js"
+    ]
+  },
+  "node_modules\\next\\dist\\client\\index.js -> ../pages/_error": {
+    "id": 1646,
+    "files": [
+      "static/chunks/646.f342b7cffc01feb0.js"
+    ]
+  }
+}
