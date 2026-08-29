@@ -2,25 +2,23 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 const DESCRIPTION =
-  "HyperXDB compiles a question into a typed intent, resolves it against a HydraDB " +
-  "graph, and returns evidence-backed context — or an honest, typed abstention.";
+  "Autophagy reads live cluster metrics, reasons about why a pattern is wasteful, "
+  + "and commits every confirmed incident to a public efficiency registry.";
 
 const OG_IMAGE = "/assets/6a5a4043436ba7ed8f8a3507_og-image-1.png";
 
 export const metadata: Metadata = {
-  title: "HyperXDB | Programmable Memory Reasoning Engine",
+  title: "Autophagy | Behavioral Waste Detection for Agent Fleets",
   description: DESCRIPTION,
-  metadataBase: new URL("https://hyperxdb.dev"),
-  alternates: { canonical: "https://hyperxdb.dev" },
   openGraph: {
     type: "website",
-    title: "HyperXDB | Programmable Memory Reasoning Engine",
+    title: "Autophagy | Behavioral Waste Detection for Agent Fleets",
     description: DESCRIPTION,
     images: [OG_IMAGE],
   },
   twitter: {
     card: "summary_large_image",
-    title: "HyperXDB | Programmable Memory Reasoning Engine",
+    title: "Autophagy | Behavioral Waste Detection for Agent Fleets",
     description: DESCRIPTION,
     images: [OG_IMAGE],
   },
@@ -45,11 +43,11 @@ export const viewport = {
 const JSON_LD = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "HyperXDB",
+  name: "Autophagy",
   description:
-    "Programmable memory reasoning engine that compiles a typed intent into a " +
-    "bounded retrieval plan, executes it against a HydraDB graph, and returns " +
-    "evidence-backed context or an honest, typed abstention",
+    "Behavioral waste detection for autonomous agent fleets. Reads live cluster "
+    + "metrics, reasons about whether a pattern is genuine waste, and attests every "
+    + "human-approved finding to a public on-chain efficiency registry.",
   url: "/",
   applicationCategory: "DeveloperApplication",
   operatingSystem: "Web",
@@ -60,20 +58,20 @@ const JSON_LD = {
     priceCurrency: "USD",
   },
   featureList: [
-    "Typed Intent Compilation",
-    "Bounded Retrieval Plans",
-    "Knowledge Updates and Supersession",
-    "Contradiction Detection",
-    "Fail-Closed Abstention",
+    "Live Cluster Metrics",
+    "Reasoned Waste Verdicts",
+    "Human Approval Gate",
+    "Public Efficiency Registry",
   ],
-  provider: { "@type": "Organization", name: "HyperXDB", url: "/" },
+  provider: { "@type": "Organization", name: "Autophagy", url: "/" },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"
-      data-wf-domain="hyperxdb.dev"
+      suppressHydrationWarning
+      data-wf-domain="autophagy.local"
       data-wf-page="6a3e64ff64a92f2281e8e826"
       data-wf-site="6a3e64ff64a92f2281e8e82a"
     >

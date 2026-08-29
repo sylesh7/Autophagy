@@ -32,7 +32,7 @@ export default function CtaFooter() {
                         </p>
                       </div>
                       <div className="button-group desktop">
-                        <a data-button-066="" data-wf--button--variant="tertiary" href="/memory/ask" className="button-066 w-variant-3819d0ce-d6bb-f52e-c0a9-5429ba2c9c4b w-inline-block">
+                        <a data-button-066="" data-wf--button--variant="tertiary" href="/fleet/overview" className="button-066 w-variant-3819d0ce-d6bb-f52e-c0a9-5429ba2c9c4b w-inline-block">
                           <span className="button-066__bg w-variant-3819d0ce-d6bb-f52e-c0a9-5429ba2c9c4b" />
                           <span className="button-066__inner">
                             <span data-button-066-text="" className="button-066__text w-variant-3819d0ce-d6bb-f52e-c0a9-5429ba2c9c4b">
@@ -60,7 +60,7 @@ export default function CtaFooter() {
                         </div>
                       </div>
                       <div className="button-group mobile">
-                        <a data-button-066="" data-wf--button--variant="tertiary" href="/memory/ask" className="button-066 w-variant-3819d0ce-d6bb-f52e-c0a9-5429ba2c9c4b w-inline-block">
+                        <a data-button-066="" data-wf--button--variant="tertiary" href="/fleet/overview" className="button-066 w-variant-3819d0ce-d6bb-f52e-c0a9-5429ba2c9c4b w-inline-block">
                           <span className="button-066__bg w-variant-3819d0ce-d6bb-f52e-c0a9-5429ba2c9c4b" />
                           <span className="button-066__inner">
                             <span data-button-066-text="" className="button-066__text w-variant-3819d0ce-d6bb-f52e-c0a9-5429ba2c9c4b">

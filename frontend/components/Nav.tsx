@@ -271,7 +271,7 @@ export default function Nav() {
                         </a>
                       </li>
                       <li className="nav_menu-li">
-                        <a data-nav-link="" href="/memory/ask" className="nav-link w-inline-block">
+                        <a data-nav-link="" href="/fleet/overview" className="nav-link w-inline-block">
                           <span className="nav-link_span">
                             {"Dashboard"}
                           </span>
@@ -288,7 +288,7 @@ export default function Nav() {
                           </span>
                         </span>
                       </a>
-                      <a data-button-066="" data-wf--button--variant="primary" href="/memory/ask" className="button-066 w-inline-block">
+                      <a data-button-066="" data-wf--button--variant="primary" href="/fleet/overview" className="button-066 w-inline-block">
                         <span className="button-066__bg" />
                         <span className="button-066__inner">
                           <span data-button-066-text="" className="button-066__text">
@@ -306,7 +306,7 @@ export default function Nav() {
                       <div className="nav-line" />
                     </span>
                   </a>
-                  <a data-button-066="" data-wf--button--variant="primary" href="/memory/ask" className="button-066 w-inline-block">
+                  <a data-button-066="" data-wf--button--variant="primary" href="/fleet/overview" className="button-066 w-inline-block">
                     <span className="button-066__bg" />
                     <span className="button-066__inner">
                       <span data-button-066-text="" className="button-066__text">
@@ -363,7 +363,7 @@ export default function Nav() {
                     <label className="w-checkbox fs-cc-prefs2_checkbox-field">
                       <div className="w-checkbox-input w-checkbox-input--inputType-custom fs-cc-prefs2_checkbox" />
                       <input type="checkbox" name="marketing-2" id="marketing-2" data-name="Marketing 2" fs-cc-checkbox="marketing" style={{"opacity": "0", "position": "absolute", "zIndex": "-1"}} />
-                      <span for="marketing-2" className="fs-cc-prefs2_checkbox-label w-form-label">
+                      <span className="fs-cc-prefs2_checkbox-label w-form-label">
                         {"Essential"}
                       </span>
                     </label>
@@ -377,7 +377,7 @@ export default function Nav() {
                     <label className="w-checkbox fs-cc-prefs2_checkbox-field">
                       <div className="w-checkbox-input w-checkbox-input--inputType-custom fs-cc-prefs2_checkbox" />
                       <input type="checkbox" name="personalization-2" id="personalization-2" data-name="Personalization 2" fs-cc-checkbox="personalization" style={{"opacity": "0", "position": "absolute", "zIndex": "-1"}} />
-                      <span for="personalization-2" className="fs-cc-prefs2_checkbox-label w-form-label">
+                      <span className="fs-cc-prefs2_checkbox-label w-form-label">
                         {"Essential"}
                       </span>
                     </label>
@@ -391,7 +391,7 @@ export default function Nav() {
                     <label className="w-checkbox fs-cc-prefs2_checkbox-field">
                       <div className="w-checkbox-input w-checkbox-input--inputType-custom fs-cc-prefs2_checkbox" />
                       <input type="checkbox" name="analytics-2" id="analytics-2" data-name="Analytics 2" fs-cc-checkbox="analytics" style={{"opacity": "0", "position": "absolute", "zIndex": "-1"}} />
-                      <span for="analytics-2" className="fs-cc-prefs2_checkbox-label w-form-label">
+                      <span className="fs-cc-prefs2_checkbox-label w-form-label">
                         {"Essential"}
                       </span>
                     </label>

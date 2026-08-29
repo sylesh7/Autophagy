@@ -28,7 +28,7 @@ export default function Hero() {
                 <div className="hero-desc">
                   {"Autophagy reads live cluster metrics, reasons about why a pattern is wasteful, and commits every confirmed incident to a public registry — or clears it as legitimate."}
                 </div>
-                <a data-button-066="" href="/memory/ask" className="button-066 hero-btn w-inline-block">
+                <a data-button-066="" href="/fleet/overview" className="button-066 hero-btn w-inline-block">
                   <span className="button-066__bg" />
                   <span className="button-066__inner">
                     <span data-button-066-text="" className="button-066__text">
