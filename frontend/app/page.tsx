@@ -1,19 +1,34 @@
-import HeroProductivity from "@/components/generated/HeroProductivity";
-import Propositions from "@/components/generated/Propositions";
-import Banner from "@/components/generated/Banner";
-import Opportunity from "@/components/generated/Opportunity";
-import News from "@/components/generated/News";
-import Faq from "@/components/generated/Faq";
+import Nav from "@/components/Nav";
+import PageCustomCode from "@/components/PageCustomCode";
+import PageCustomCodeEnd from "@/components/PageCustomCodeEnd";
+import CtaFooter from "@/components/CtaFooter";
+import SiteScripts from "@/components/SiteScripts";
 
-export default function Page() {
+import Preloader from "@/components/sections/Preloader";
+import Hero from "@/components/sections/Hero";
+import ThreeStyles from "@/components/sections/ThreeStyles";
+import HiddenComponents from "@/components/sections/HiddenComponents";
+import StatementMobile from "@/components/sections/StatementMobile";
+import Tabs from "@/components/sections/Tabs";
+import Why from "@/components/sections/Why";
+
+export default function Home() {
   return (
-    <>
-      <HeroProductivity />
-      <Propositions />
-      <Banner />
-      <Opportunity />
-      <News />
-      <Faq />
-    </>
+    <div className="page-wrapper">
+      <PageCustomCode />
+      <Nav />
+      <main className="main-wrapper">
+        <Preloader />
+        <Hero />
+        <ThreeStyles />
+        <HiddenComponents />
+        <StatementMobile />
+        <Tabs />
+        <Why />
+      </main>
+      <CtaFooter />
+      <PageCustomCodeEnd />
+      <SiteScripts />
+    </div>
   );
 }
