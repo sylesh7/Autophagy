@@ -158,10 +158,10 @@ This is deliberately a small, inspectable rule set rather than an opaque model s
 The genuine substrate the Watcher observes. Not simulated — real pods, real scheduling, real resource requests.
 
 ### metrics-server
-Standard Kubernetes component exposing live CPU/memory usage per pod. This is the same tool real production clusters use for autoscaling decisions — Autophagy reads from it, it doesn't reimplement it.
+Standard Kubernetes component exposing live CPU/memory usage per pod. This is the same tool real production clusters use for autoscaling decisions — Autophagy reads from it, it doesn't re-implement it.
 
 ### LLM Reasoning Layer (Diagnostician) — via OpenRouter
-Used specifically for the ambiguous judgment call — "is this waste or legitimate" — which a hard-coded threshold cannot answer reliably. This is the genuinely agentic part of the system, not decoration on top of a script.
+Used specifically for the ambiguous judgment call — "is this waste or legitimate" — which a hard-coded threshold cannot answer reliably. This is the genuinely agentic part of the system, not just a decoration on top of a script.
 
 Model calls are routed through **OpenRouter** (`https://openrouter.ai/api/v1/chat/completions`) rather than a single provider's SDK, so the Diagnostician's model can be swapped (e.g., between Claude, GPT, or an open-weight model) without changing any application code — only the `model` field in the request body and the `OPENROUTER_API_KEY` environment variable. This also means judges/demo backups can switch to a cheaper or faster model instantly if rate limits are hit live.
 
