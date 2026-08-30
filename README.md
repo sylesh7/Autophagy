@@ -12,7 +12,7 @@ Instead of waiting for a monthly cloud bill to reveal waste, Autophagy sits betw
 2. [Solution](#2-solution)
 3. [How It Works — Full Technical Flow](#3-how-it-works--full-technical-flow)
 4. [Detection Foundation](#4-detection-foundation)
-5. [Architecture Overview](#5-architecture-overview)
+5. [System Flow](#5-system-flow)
 6. [Tech Stack — What We Use and Why](#6-tech-stack--what-we-use-and-why)
 7. [Frontend — Pages, Design, and User Flow](#7-frontend--pages-design-and-user-flow)
 8. [Backend — Services, APIs, and Integration](#8-backend--services-apis-and-integration)
@@ -123,31 +123,47 @@ This is deliberately a small, inspectable rule set rather than an opaque model s
 
 ---
 
-## 5. Architecture Overview
+## 5. System Flow
 
-```
-+------------------------------------------------------------+
-|                    FRONTEND (Dashboard)                    |
-|   Fleet Overview · Agent Detail · Incident Feed · Approve  |
-+----------------------+---------------------------------------+
-                       | HTTP / REST
-+----------------------v---------------------------------------+
-|                  BACKEND (Watcher · Diagnostician ·         |
-|                          Negotiator pipeline)                |
-+------+--------------------------+-----------------------------+
-       |                          |
-+------v------+           +-------v--------+
-|  REAL K8s   |           |  LLM REASONING |
-|  CLUSTER    |           |  (Diagnostician|
-|  (Minikube) |           |   verdicts)    |
-|  metrics-   |           +----------------+
-|  server     |
-+-------------+
-       |
-+------v-------------------------------------------------------+
-|             EfficiencyRegistry.sol (public testnet)           |
-|     Agent identity · Incident attestations · Public history   |
-+-----------------------------------------------------------------+
+How one waste incident moves from a live cluster reading to a public, on-chain record — the same eight steps as [Section 3](#3-how-it-works--full-technical-flow), as an actual sequence rather than a box diagram.
+
+```mermaid
+sequenceDiagram
+    participant Agent as Agent Pod
+    participant Cluster as K8s Cluster + metrics-server
+    participant Watcher
+    participant Diagnostician as Diagnostician (LLM)
+    participant Negotiator
+    participant Human as Human (dashboard)
+    participant Backend as Backend (approval gate)
+    participant Registry as EfficiencyRegistry.sol
+
+    Agent->>Registry: registerAgent(address)
+    Registry-->>Agent: agentId
+
+    loop every WATCH_INTERVAL_MS
+        Watcher->>Cluster: poll requested vs. actual CPU/mem, task logs
+        Cluster-->>Watcher: live snapshot
+    end
+
+    Note over Watcher: gap persists ≥ SUSTAINED_WINDOWS<br/>consecutive polls — not one noisy reading
+
+    Watcher->>Diagnostician: anomaly (evidence + mitigations)
+    Diagnostician-->>Watcher: verdict, confidence, reasoning
+
+    alt WASTE, high confidence
+        Watcher->>Negotiator: diagnosed anomaly
+        Negotiator-->>Watcher: proposal (action, cost impact)
+        Watcher-->>Human: surface proposal for review
+        Human->>Backend: POST /api/approve
+        Backend->>Cluster: real kubectl action (scale / terminate)
+        Cluster-->>Backend: pod re-queried — state verified, not assumed
+        Backend->>Registry: attestIncident(agentId, type, cost, confidence, evidenceHash)
+        Registry-->>Backend: IncidentAttested (tx hash, block)
+        Backend-->>Human: incident REMEDIATED + explorer link
+    else LEGITIMATE, or low confidence
+        Diagnostician-->>Watcher: no action — incident closed
+    end
 ```
 
 ---
@@ -314,11 +330,15 @@ Owns `EfficiencyRegistry.sol`, testnet deployment, the dashboard, the demo page,
 
 **Minute 1 — Show the invisible problem.** Fleet overview looks calm and green. Point out: nothing on a normal dashboard would flag what's about to happen.
 
-**Minute 2 — Trigger real misbehavior.** Start the real retry-loop agent against the live cluster. Watch Watcher flag it, Diagnostician explain its reasoning on screen ("14 attempts, 0 completions — high confidence retry loop, not intentional load"), and Negotiator surface the real calculated cost.
+**Minute 2 — Force a live polling window.** On the Live Demo page, click "Force a polling window now." `standby-agent` and `dead-allocation-agent` are metrically identical — same reservation, same zero CPU, same empty activity log — yet the Diagnostician splits them: `standby-agent` → LEGITIMATE @ 92% (it declared its own intent), `dead-allocation-agent` → WASTE @ 78% (nothing did). The incident feed below picks up `retry-loop-agent`'s RETRY_LOOP flag in the same pass.
 
-**Minute 3 — Approve and prove it's real.** Click approve. Show the real `kubectl` action landing (re-query the cluster, state has actually changed). Then open `sepolia.basescan.org` live and show the `IncidentAttested` transaction — a permanent, public record of this exact incident on Base Sepolia, checkable by anyone, not just visible in this dashboard.
+**Minute 3 — Approve and prove it's real.** On the Approve page, click approve. Show the real `kubectl` action landing (re-query the cluster, state has actually changed).
+
+**Minute 4 — Show the public record.** Open `sepolia.basescan.org` live and show the `IncidentAttested` transaction on the deployed registry (`0xFc422Ec82694A5F21D176b1E199b1AEB2deD4Ec9`) — a permanent, public record of this exact incident, checkable by anyone, not just visible in this dashboard. Pull up the agent's own on-chain history to close the loop.
 
 Closing line: *"Budgets check how much was spent. Autophagy checks whether the work was real — and remembers, publicly, when it wasn't."*
+
+Full shot-by-shot script — timecodes, on-screen direction, spoken lines, and exact commands — is in [`DEMO_SCRIPT.md`](./DEMO_SCRIPT.md).
 
 ---
 
@@ -330,7 +350,20 @@ This is a testnet proof-of-concept, not a production FinOps platform. The detect
 
 ## 14. Research and Prior Art
 
-Cloud cost optimization tooling (AWS Cost Explorer, GCP Recommender, Azure Advisor) already detects infrastructure waste at scale, but treats it as a private, single-organization concern — nothing makes an agent's efficiency track record portable or checkable by a different organization deciding whether to hire it. ERC-8004 defines Identity, Reputation, and Validation registries for agents, but its Validation Registry component remains lightly implemented across the ecosystem as of 2026. Autophagy's contribution is applying that attestation pattern specifically to *resource-efficiency behavior*, which no existing FinOps tool or agent-identity project currently records publicly.
+Wasted cloud spend hit 29% in 2026 — the first rise in five years — driven specifically by AI workloads spun up faster than finance teams can tag or shut down ([Flexera, State of the Cloud 2026](https://resources.flexera.com/web/pdf/Flexera-State-of-the-Cloud-Report-2026.pdf)). Independent research backs the shape of that waste: an empirical catalog of 63 LLM-agent budget-overrun incidents across 21 orchestration frameworks names retry loops as a recurring, distinct failure class ([arXiv 2606.04056](https://arxiv.org/pdf/2606.04056)), and field-reported postmortems describe individual agents burning five- and six-figure model spend in hours to days from a single undetected retry loop — caught by the bill, not by anything watching behavior. None of that is hypothetical; it is what Pattern 1–3 in [Section 1](#1-problem) look like at production scale.
+
+Nothing in the existing toolchain closes that gap end-to-end:
+
+| System | What it does | Behavior-aware | Reasons about intent | Auto-remediates | Public reputation |
+|---|---|---|---|---|---|
+| Cloud dashboards (AWS Cost Explorer, GCP Recommender, Azure Advisor) | Visualizes spend, flags idle/oversized resources against static thresholds | No | No | No | No |
+| Kubecost | Attributes Kubernetes cost by namespace/deployment/label, alerts on budgets | No | No | No — surfaces, doesn't fix | No |
+| CAST AI and similar autoscalers | Continuously rightsizes pods, bin-packs nodes, automates spot placement | Generic | No | Yes, silently | No |
+| Agent budget guardrails (token caps, circuit breakers) | Kills or throttles a session once a cost ceiling is crossed | Reactive only | No | Kill switch only | No |
+| ERC-8004 reputation apps (general agent-identity projects) | Portable on-chain identity and feedback registries | No | No | No | Generic feedback |
+| **Autophagy** | Watches live cluster behavior, has an LLM diagnose intent, remediates on human approval, attests the outcome on-chain | **Yes — 4 signatures** | **Yes, with confidence** | **Yes, human-gated** | **Yes, portable** |
+
+Cloud cost tooling detects infrastructure waste at scale but treats it as a private, single-organization concern — nothing makes an agent's efficiency track record portable or checkable by a different organization deciding whether to hire it. ERC-8004 is real, adopted infrastructure, not a hackathon-only conceit — it went live on Ethereum mainnet on January 29, 2026 and was adopted on Avalanche and BNB Chain within weeks — but an empirical study of the live ecosystem through May 2026 confirms its Validation Registry is used for generic feedback, not resource-efficiency-specific attestation ([arXiv 2606.26028](https://arxiv.org/html/2606.26028)). Autophagy's contribution is applying that attestation pattern specifically to *resource-efficiency behavior*, which no existing FinOps tool or agent-identity project currently records publicly.
 
 ---
 

@@ -23,15 +23,8 @@ export const metadata: Metadata = {
     images: [OG_IMAGE],
   },
   icons: {
-    icon: [
-      { url: "/assets/6a3ec362c7dcfde149a901d3_favicon.png", sizes: "32x32", type: "image/png" },
-      { url: "/assets/6a3ec3627461b17a289a5ee1_favicon.png", sizes: "48x48", type: "image/png" },
-      { url: "/assets/6a3ec3628769352bc69fdecc_favicon.png", sizes: "192x192", type: "image/png" },
-      { url: "/assets/6a3ec362c7dcfde149a901d7_favicon.png", sizes: "512x512", type: "image/png" },
-    ],
-    apple: [
-      { url: "/assets/6a3ec3620bc995da535d41c2_favicon.png", sizes: "180x180" },
-    ],
+    icon: [{ url: "/assets/Autophagy_Logo.jpeg", type: "image/jpeg" }],
+    apple: [{ url: "/assets/Autophagy_Logo.jpeg" }],
   },
 };
 
