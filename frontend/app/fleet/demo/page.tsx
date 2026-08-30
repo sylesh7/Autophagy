@@ -59,32 +59,26 @@ function PodPanel({
         )}
       </div>
 
-      <table className={styles.kvTable}>
-        <tbody>
-          <tr>
-            <th>CPU</th>
-            <td>{formatPct(pod.cpuUtilisation)} of requested</td>
-          </tr>
-          <tr>
-            <th>Activity</th>
-            <td>
-              {pod.activity
-                ? `${pod.activity.attempts} attempts / ${pod.activity.completions} completions`
-                : "no log"}
-            </td>
-          </tr>
-          <tr>
-            <th>Declared intent</th>
-            <td>
-              {standby ? (
-                <span className={styles.chip}>standby — reserved capacity</span>
-              ) : (
-                "none"
-              )}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div className={styles.kvTable}>
+        <div className={styles.kvKey}>CPU</div>
+        <div className={styles.kvValue}>{formatPct(pod.cpuUtilisation)} of requested</div>
+
+        <div className={styles.kvKey}>Activity</div>
+        <div className={styles.kvValue}>
+          {pod.activity
+            ? `${pod.activity.attempts} attempts / ${pod.activity.completions} completions`
+            : "no log"}
+        </div>
+
+        <div className={styles.kvKey}>Declared intent</div>
+        <div className={styles.kvValue}>
+          {standby ? (
+            <span className={styles.chip}>standby — reserved capacity</span>
+          ) : (
+            "none"
+          )}
+        </div>
+      </div>
 
       {incident?.diagnosis ? (
         <div className={styles.evidenceCard}>

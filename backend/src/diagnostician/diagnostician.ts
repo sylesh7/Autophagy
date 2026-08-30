@@ -18,7 +18,10 @@ const log = logger("diagnostician");
 
 const verdictSchema = z.object({
   verdict: z.enum(["WASTE", "LEGITIMATE"]),
-  confidence: z.number().min(0).max(1),
+  // The model is asked for a whole percent because it sometimes spells a
+  // decimal digit as a word ("0. nine"), which is not valid JSON. Everything
+  // downstream still works in 0-1, so it is normalised on the way out.
+  confidence: z.number().int().min(0).max(100),
   incident_type: z.enum([
     "RETRY_LOOP",
     "ORPHANED_DUPLICATE",
@@ -59,11 +62,11 @@ export async function diagnose(anomaly: Anomaly): Promise<Diagnosis> {
     try {
       return await attemptDiagnosis(payload, anomaly);
     } catch (err) {
-      const rateLimited = err instanceof RateLimitError;
-      if (!rateLimited || attempt >= MAX_RATE_LIMIT_RETRIES) throw err;
+      if (!(err instanceof RetryableError) || attempt >= MAX_RATE_LIMIT_RETRIES) throw err;
 
       log.warn(
-        `${llm.label} rate-limited; retrying in ${(err.retryAfterMs / 1000).toFixed(1)}s ` +
+        `${llm.label} call failed retryably (${err.name}); retrying in ` +
+          `${(err.retryAfterMs / 1000).toFixed(1)}s ` +
           `(attempt ${attempt + 1}/${MAX_RATE_LIMIT_RETRIES})`,
       );
       await new Promise((r) => setTimeout(r, err.retryAfterMs));
@@ -71,13 +74,21 @@ export async function diagnose(anomaly: Anomaly): Promise<Diagnosis> {
   }
 }
 
-/** Signals a 429 that is worth waiting out rather than failing the incident. */
-class RateLimitError extends Error {
+/** A failure worth another attempt rather than failing the incident outright. */
+class RetryableError extends Error {
   constructor(
     message: string,
     readonly retryAfterMs: number,
   ) {
     super(message);
+    this.name = "RetryableError";
+  }
+}
+
+/** Signals a 429 that is worth waiting out rather than failing the incident. */
+class RateLimitError extends RetryableError {
+  constructor(message: string, retryAfterMs: number) {
+    super(message, retryAfterMs);
     this.name = "RateLimitError";
   }
 }
@@ -145,6 +156,15 @@ async function attemptDiagnosis(
             `LLM_PROVIDER=${llm.provider} in .env. Provider said: ${detail.slice(0, 250)}`,
       );
     }
+    // Groq returns 400 json_validate_failed when the model emits something the
+    // schema cannot accept. It is a property of that one sampling, not of the
+    // prompt, so the same request usually succeeds on the next attempt.
+    if (response.status === 400 && detail.includes("json_validate_failed")) {
+      throw new RetryableError(
+        `${llm.label} produced JSON the schema rejected: ${detail.slice(0, 220)}`,
+        750,
+      );
+    }
     if (response.status === 429) {
       throw new RateLimitError(
         `${llm.label} rate-limited the Diagnostician. Raise WATCH_INTERVAL_MS or switch ` +
@@ -187,7 +207,7 @@ async function attemptDiagnosis(
 
   const diagnosis: Diagnosis = {
     verdict: parsed.data.verdict,
-    confidence: parsed.data.confidence,
+    confidence: parsed.data.confidence / 100,
     reasoning: parsed.data.reasoning,
     incidentType: parsed.data.incident_type,
     model: body.model ?? llm.model,

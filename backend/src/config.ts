@@ -20,14 +20,19 @@ const schema = z.object({
 
   // Reasoning layer.
   //
-  // xAI and OpenRouter both expose an OpenAI-compatible /chat/completions
-  // endpoint with json_schema structured output, so switching providers is
-  // configuration rather than code. Each provider supplies its own defaults;
-  // LLM_MODEL and LLM_BASE_URL override them when set.
-  LLM_PROVIDER: z.enum(["groq", "xai", "openrouter"]).default("groq"),
+  // groq, xai, openrouter and sarvam all expose an OpenAI-compatible
+  // /chat/completions endpoint with json_schema structured output, so
+  // switching providers is configuration rather than code. Sarvam accepts
+  // the same single Authorization: Bearer header as the others despite its
+  // docs leading with a separate api-subscription-key header — that header
+  // is for Sarvam's native SDK, not required for OpenAI-compatible calls.
+  // Each provider supplies its own defaults; LLM_MODEL and LLM_BASE_URL
+  // override them when set.
+  LLM_PROVIDER: z.enum(["groq", "xai", "openrouter", "sarvam"]).default("groq"),
   GROQ_API_KEY: z.string().optional(),
   XAI_API_KEY: z.string().optional(),
   OPENROUTER_API_KEY: z.string().optional(),
+  SARVAM_API_KEY: z.string().optional(),
   LLM_MODEL: z.string().min(1).optional(),
   LLM_BASE_URL: z.string().url().optional(),
   // Caps the completion. A verdict needs only a few hundred tokens, and an
@@ -102,6 +107,22 @@ const PROVIDERS = {
     keyVar: "OPENROUTER_API_KEY",
     creditsUrl: "https://openrouter.ai/settings/credits",
   },
+  sarvam: {
+    label: "Sarvam AI",
+    baseUrl: "https://api.sarvam.ai/v1",
+    // NOT sarvam-105b. That model is a reasoning model whose chain-of-thought
+    // is written to a separate `reasoning_content` field before the final
+    // answer — measured against the real Diagnostician prompt, it spent an
+    // entire 4000-token budget on reasoning_content (14.7k chars) without
+    // ever reaching `content`, which the pipeline reads. sarvam-105b-
+    // conversations is built for low-latency dialogue instead: same request
+    // shape, no extended thinking, answers straight into `content`. Verified
+    // against the real prompt: finish_reason "stop", 351/700 tokens, a
+    // complete schema-valid verdict, reasoning_content null.
+    model: "sarvam-105b-conversations",
+    keyVar: "SARVAM_API_KEY",
+    creditsUrl: "https://dashboard.sarvam.ai/",
+  },
 } as const;
 
 const provider = PROVIDERS[parsed.data.LLM_PROVIDER];
@@ -109,6 +130,7 @@ const API_KEYS: Record<typeof parsed.data.LLM_PROVIDER, string | undefined> = {
   groq: parsed.data.GROQ_API_KEY,
   xai: parsed.data.XAI_API_KEY,
   openrouter: parsed.data.OPENROUTER_API_KEY,
+  sarvam: parsed.data.SARVAM_API_KEY,
 };
 const apiKey = API_KEYS[parsed.data.LLM_PROVIDER];
 

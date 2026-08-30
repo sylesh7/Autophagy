@@ -44,7 +44,7 @@ npm run dev
 
 ### Choosing a reasoning provider
 
-The Diagnostician is the one component with a running cost. All three providers expose an
+The Diagnostician is the one component with a running cost. All four providers expose an
 OpenAI-compatible `/chat/completions` endpoint with `json_schema` structured output, so
 switching is configuration only:
 
@@ -53,6 +53,7 @@ switching is configuration only:
 | `groq` *(default)* | `openai/gpt-oss-120b` | free | **No card required** |
 | `xai` | `grok-4.3` | $1.25 / $2.50 per M | Credits must be purchased |
 | `openrouter` | `anthropic/claude-sonnet-4.5` | varies | Credits must be purchased |
+| `sarvam` | `sarvam-105b-conversations` | varies | Bring your own key |
 
 ```bash
 LLM_PROVIDER=groq
@@ -68,7 +69,15 @@ or verdicts come back as prose and fail validation rather than being silently ac
 Groq only three models qualify: `openai/gpt-oss-120b`, `openai/gpt-oss-20b`,
 `qwen/qwen3.8-27b`. On xAI the valid ids are `grok-4.6`, `grok-4.5`, `grok-4.3` and the
 `grok-4.20-*` variants — there is no "fast" variant, despite what some third-party pricing
-pages list.
+pages list. On Sarvam, use `sarvam-105b-conversations`, not `sarvam-105b` — the latter is a reasoning
+model that writes its chain-of-thought to a separate `reasoning_content` field before the
+final answer, and on the real Diagnostician prompt it spent an entire 4000-token budget
+on that reasoning without ever reaching `content`, which the pipeline actually reads.
+`sarvam-105b-conversations` is built for low-latency dialogue and answers directly: verified
+against the real prompt at `finish_reason: "stop"`, 351/700 tokens, a complete verdict.
+GLM and Gemma variants are on Sarvam's roadmap but sit behind a beta whitelist. Sarvam's own docs lead with a
+separate `api-subscription-key` header, but a plain `Authorization: Bearer` — the same header
+every other provider here uses — is confirmed sufficient for the OpenAI-compatible endpoint.
 
 A verdict costs roughly 1,570 tokens: free on Groq, about $0.002 on `grok-4.3`.
 

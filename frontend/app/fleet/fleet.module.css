@@ -35,14 +35,22 @@
   --tm-signal-text: var(--tm-color-crimson-readable);
   --tm-error: var(--tm-color-danger);
   --tm-focus: var(--tm-color-white);
+  /* Monogram Extended is a pixel face: crisp at display sizes, illegible at the
+     13-16px the console actually reads at. It stays on the large headings only
+     (see .pageTitle / .brandMark / .cardTitle) and everything else moves to a
+     real monospace, which keeps the terminal character while staying readable.
+     The stack is deliberately all system fonts — a live demo should not depend
+     on a webfont request completing. */
   --tm-font-display: 'Monogram Extended';
-  --tm-font-interface: 'Monogram Extended';
-  --tm-font-copy: 'Monogram Extended';
-  --tm-font-code: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
-  --tm-type-meta: 1rem;
-  --tm-type-control: 1.25rem;
-  --tm-type-copy: 1.25rem;
-  --tm-type-copy-large: 1.5rem;
+  --tm-font-mono: ui-monospace, 'Cascadia Mono', 'Cascadia Code', 'SF Mono',
+    SFMono-Regular, Menlo, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  --tm-font-interface: var(--tm-font-mono);
+  --tm-font-copy: var(--tm-font-mono);
+  --tm-font-code: var(--tm-font-mono);
+  --tm-type-meta: 0.8125rem;
+  --tm-type-control: 0.9375rem;
+  --tm-type-copy: 0.9375rem;
+  --tm-type-copy-large: 1.0625rem;
   --tm-type-title: clamp(3.5rem, 8vw, 6rem);
   --tm-leading-tight: 0.82;
   --tm-leading-copy: 1.18;
@@ -116,6 +124,7 @@
 }
 
 .brandMark {
+  font-family: var(--tm-font-display);
   font-size: 2rem;
   letter-spacing: -0.02em;
   text-transform: uppercase;
@@ -124,7 +133,7 @@
 
 .brandSub {
   font-family: var(--tm-font-copy);
-  font-size: 1rem;
+  font-size: 0.8125rem;
   color: var(--tm-text-muted);
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -139,12 +148,13 @@
 
 .navLink {
   display: flex;
+  white-space: nowrap;
   align-items: center;
   gap: var(--tm-space-3);
   min-height: 2.75rem;
   padding: 0 var(--tm-space-3);
   font-family: var(--tm-font-copy);
-  font-size: 1.25rem;
+  font-size: 0.9375rem;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: var(--tm-paper-muted);
@@ -213,10 +223,11 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   font-family: var(--tm-font-copy);
-  font-size: 1rem;
+  font-size: 0.8125rem;
 }
 
 .pageTitle {
+  font-family: var(--tm-font-display);
   letter-spacing: -0.03em;
   text-transform: uppercase;
   font-weight: 400;
@@ -227,7 +238,7 @@
 
 .pageLede {
   font-family: var(--tm-font-copy);
-  font-size: 1.25rem;
+  font-size: 0.9375rem;
   line-height: 1.35;
   color: var(--tm-paper-muted);
   max-width: 62ch;
@@ -267,6 +278,7 @@
 /* ---------------------------------------------------------------- card --- */
 
 .card {
+  min-width: 0;
   border: var(--tm-rule-width) solid var(--tm-rule);
   background: var(--tm-color-black-raised);
   padding: var(--tm-space-5);
@@ -284,6 +296,7 @@
 }
 
 .cardTitle {
+  font-family: var(--tm-font-display);
   font-size: 1.5rem;
   text-transform: uppercase;
   letter-spacing: -0.01em;
@@ -318,13 +331,16 @@
 .chip {
   display: inline-flex;
   align-items: center;
-  min-height: 2.5rem;
-  padding: 0 var(--tm-space-4);
+  min-height: 1.5rem;
+  margin-left: var(--tm-space-2);
+  padding: 0 var(--tm-space-2);
   border: var(--tm-rule-width) solid var(--tm-rule);
   background: transparent;
   color: var(--tm-paper-muted);
   font-family: var(--tm-font-copy);
-  font-size: 1.1rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
   cursor: pointer;
   text-align: left;
   transition: background-color var(--tm-duration-fast) var(--tm-ease-out),
@@ -353,7 +369,7 @@
   align-items: center;
   gap: var(--tm-space-2);
   font-family: var(--tm-font-copy);
-  font-size: 1rem;
+  font-size: 0.8125rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--tm-paper-muted);
@@ -406,7 +422,7 @@
   color: var(--tm-ink);
   padding: var(--tm-space-3) var(--tm-space-4);
   font-family: var(--tm-font-copy);
-  font-size: 1.25rem;
+  font-size: 0.9375rem;
 }
 
 .turnSystem {
@@ -422,10 +438,12 @@
 
 .contextText {
   font-family: var(--tm-font-copy);
-  font-size: 1.15rem;
+  font-size: 0.9375rem;
   line-height: 1.5;
   color: var(--tm-paper);
   white-space: pre-line;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .evidenceRow {
@@ -451,19 +469,23 @@
   font-family: var(--tm-font-code);
   font-size: 0.8rem;
   color: var(--tm-text-muted);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .evidenceSnippet {
   font-family: var(--tm-font-copy);
-  font-size: 1rem;
+  font-size: 0.9375rem;
   line-height: 1.4;
   color: var(--tm-paper-muted);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .planLink {
   align-self: flex-start;
   font-family: var(--tm-font-copy);
-  font-size: 1rem;
+  font-size: 0.875rem;
   color: var(--tm-signal-text);
   text-decoration: none;
   border-bottom: var(--tm-rule-width) solid transparent;
@@ -493,7 +515,7 @@
 
 .bannerTitle {
   font-family: var(--tm-font-copy);
-  font-size: 1.1rem;
+  font-size: 0.9375rem;
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
@@ -508,9 +530,11 @@
 
 .bannerDetail {
   font-family: var(--tm-font-copy);
-  font-size: 1.05rem;
+  font-size: 0.875rem;
   color: var(--tm-paper-muted);
   line-height: 1.4;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .inputBar {
@@ -531,7 +555,7 @@
   outline: none;
   color: var(--tm-paper);
   font-family: var(--tm-font-copy);
-  font-size: 1.25rem;
+  font-size: 0.9375rem;
   padding: var(--tm-space-3);
 }
 
@@ -575,7 +599,7 @@
   border: var(--tm-rule-width) solid var(--tm-rule);
   color: var(--tm-paper);
   font-family: var(--tm-font-copy);
-  font-size: 1.1rem;
+  font-size: 0.9375rem;
   padding: var(--tm-space-3);
   outline: none;
 }
@@ -639,12 +663,12 @@
 
 .claimPredicate {
   font-family: var(--tm-font-copy);
-  font-size: 1.1rem;
+  font-size: 0.9375rem;
 }
 
 .claimValue {
   font-family: var(--tm-font-code);
-  font-size: 1rem;
+  font-size: 0.875rem;
   color: var(--tm-paper-muted);
 }
 
@@ -652,11 +676,13 @@
   font-family: var(--tm-font-code);
   font-size: 0.8rem;
   color: var(--tm-text-muted);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .progressLabel {
   font-family: var(--tm-font-copy);
-  font-size: 1rem;
+  font-size: 0.8125rem;
   color: var(--tm-signal-text);
   letter-spacing: 0.03em;
   text-transform: uppercase;
@@ -789,6 +815,7 @@
 }
 
 .sidePanel {
+  min-width: 0;
   border: var(--tm-rule-width) solid var(--tm-rule);
   background: var(--tm-color-black-raised);
   padding: var(--tm-space-4);
@@ -801,8 +828,10 @@
 .sidePanelEmpty {
   color: var(--tm-text-muted);
   font-family: var(--tm-font-copy);
-  font-size: 1.05rem;
+  font-size: 0.9375rem;
   line-height: 1.4;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .neighborList {
@@ -829,6 +858,8 @@
   font-family: var(--tm-font-code);
   font-size: 0.9rem;
   color: var(--tm-signal-text);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .skeleton {
@@ -853,9 +884,12 @@
   flex-direction: column;
   gap: var(--tm-space-3);
   align-items: flex-start;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .stageList {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: var(--tm-space-3);
@@ -863,6 +897,7 @@
 }
 
 .stage {
+  min-width: 0;
   border: var(--tm-rule-width) solid var(--tm-rule);
 }
 
@@ -877,7 +912,7 @@
   border: none;
   color: var(--tm-paper);
   font-family: var(--tm-font-copy);
-  font-size: 1.15rem;
+  font-size: 1rem;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   cursor: pointer;
@@ -896,6 +931,8 @@
   flex-direction: column;
   gap: var(--tm-space-4);
   border-top: var(--tm-rule-width) solid var(--tm-rule-muted);
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .stepRow {
@@ -915,16 +952,36 @@
 
 .stepId {
   font-family: var(--tm-font-code);
-  font-size: 1rem;
+  font-size: 0.8125rem;
   color: var(--tm-paper);
 }
 
+/* Rendered from <div> rows, not a <table>. CSS Grid needs its own direct
+   children to be the grid items; on a real <table> those are <tbody>, two
+   DOM levels above the actual <th>/<td> cells, so the grid saw one item (the
+   whole tbody) and sized it at max-content — wide enough to fit its entire
+   text with no wrapping at all. That is what produced a table thousands of
+   pixels wide the moment any value held a full sentence (the approval
+   rationale). Plain sibling <div>s make .kvKey/.kvValue the direct children,
+   which is what grid-auto-flow needs to lay them out row by row. */
 .kvTable {
   display: grid;
   grid-template-columns: max-content minmax(0, 1fr);
-  gap: var(--tm-space-1) var(--tm-space-4);
+  gap: var(--tm-space-2) var(--tm-space-4);
   font-family: var(--tm-font-code);
-  font-size: 0.9rem;
+  font-size: 0.875rem;
+}
+
+.kvKey {
+  color: var(--tm-text-muted);
+  white-space: nowrap;
+  padding-top: 0.15rem;
+}
+
+.kvValue {
+  color: var(--tm-paper);
+  min-width: 0;
+  overflow-wrap: break-word;
 }
 
 .kvTable dt {
@@ -939,7 +996,7 @@
   width: 100%;
   border-collapse: collapse;
   font-family: var(--tm-font-code);
-  font-size: 0.9rem;
+  font-size: 0.8125rem;
 }
 
 .rowTable th,
@@ -947,7 +1004,42 @@
   border: var(--tm-rule-width) solid var(--tm-rule-muted);
   padding: var(--tm-space-2) var(--tm-space-3);
   text-align: left;
+  vertical-align: top;
+}
+
+/* Automatic layout: every column sizes to its own content, capped at the
+   table's own 100% width, with no assumption about how many columns a given
+   .rowTable has or what they mean — this class is shared by tables with 2 to
+   4 columns of very different content (short figures, long prose, hyphenated
+   names). Cells wrap by default, which is what keeps a long-text column from
+   forcing the whole table past its card; headers stay on one line since
+   labels are short and breaking one mid-word reads as a rendering fault. */
+/* table-layout: fixed is load-bearing, not cosmetic.
+   With the default `auto` algorithm, a browser sizes each column from its
+   content's *unwrapped* preferred width before wrap rules ever apply — so one
+   cell holding an unbroken JSON error blob (no spaces to break on) forces its
+   whole column, and the table, past the card regardless of overflow-wrap.
+   That is exactly the "Settled" table's Attestation column when a proposal
+   fails: the raw error string is nothing but long unbroken tokens.
+   `fixed` sizes columns purely from the table's own width, so overflow-wrap
+   always has a concrete width to break against no matter what the content is.
+   Equal-width columns are the deliberate default here rather than tuned
+   per-column shares, because this one class backs tables from 2 to 4 columns
+   whose columns mean completely different things page to page. */
+.rowTable {
+  table-layout: fixed;
+}
+
+.rowTable th {
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rowTable td {
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .rowTable th {

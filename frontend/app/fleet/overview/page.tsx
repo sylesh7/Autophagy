@@ -150,7 +150,7 @@ export default function FleetOverview() {
                 <tr>
                   <th>Agent</th>
                   <th>CPU</th>
-                  <th>Requested</th>
+                  <th>Req.</th>
                   <th>Activity</th>
                 </tr>
               </thead>

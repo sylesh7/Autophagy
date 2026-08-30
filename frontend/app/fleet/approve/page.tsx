@@ -147,38 +147,30 @@ export default function ApproveReview() {
             )}
 
             {i.proposal && (
-              <table className={styles.kvTable}>
-                <tbody>
-                  <tr>
-                    <th>Proposed action</th>
-                    <td>
-                      <strong>{i.proposal.action}</strong> on {i.proposal.target.podName}
-                    </td>
-                  </tr>
-                  <tr>
-                    <th>Reclaims</th>
-                    <td>
-                      {formatCpu(i.proposal.reclaimedCpuMilli)} ·{" "}
-                      {formatMemory(i.proposal.reclaimedMemoryBytes)}
-                    </td>
-                  </tr>
-                  <tr>
-                    <th>Cost impact</th>
-                    <td>
-                      ${i.proposal.wasteUsdPerHour.toFixed(6)}/hr ·{" "}
-                      <strong>${i.proposal.projectedUsdPerMonth.toFixed(2)}/month</strong>
-                    </td>
-                  </tr>
-                  <tr>
-                    <th>Priced against</th>
-                    <td>{i.proposal.pricingSource}</td>
-                  </tr>
-                  <tr>
-                    <th>Rationale</th>
-                    <td>{i.proposal.rationale}</td>
-                  </tr>
-                </tbody>
-              </table>
+              <div className={styles.kvTable}>
+                <div className={styles.kvKey}>Proposed action</div>
+                <div className={styles.kvValue}>
+                  <strong>{i.proposal.action}</strong> on {i.proposal.target.podName}
+                </div>
+
+                <div className={styles.kvKey}>Reclaims</div>
+                <div className={styles.kvValue}>
+                  {formatCpu(i.proposal.reclaimedCpuMilli)} ·{" "}
+                  {formatMemory(i.proposal.reclaimedMemoryBytes)}
+                </div>
+
+                <div className={styles.kvKey}>Cost impact</div>
+                <div className={styles.kvValue}>
+                  ${i.proposal.wasteUsdPerHour.toFixed(6)}/hr ·{" "}
+                  <strong>${i.proposal.projectedUsdPerMonth.toFixed(2)}/month</strong>
+                </div>
+
+                <div className={styles.kvKey}>Priced against</div>
+                <div className={styles.kvValue}>{i.proposal.pricingSource}</div>
+
+                <div className={styles.kvKey}>Rationale</div>
+                <div className={styles.kvValue}>{i.proposal.rationale}</div>
+              </div>
             )}
 
             <div className={styles.messageRowActions}>

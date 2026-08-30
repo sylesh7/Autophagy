@@ -42,13 +42,22 @@ function UsageChart({ series }: { series: Array<{ cpuUtilisation: number | null 
   // than it reserved, below it the reservation is larger than the work.
   const requestedY = h - (1 / max) * (h - 20) - 10;
 
+  // SVG paints later elements over earlier ones. The data line is drawn first
+  // so it can run anywhere in the chart, including straight through the
+  // "requested" label's row when utilisation is near 100% — which is exactly
+  // what struck the text out in practice. An opaque plate then covers that
+  // stretch before the label itself is drawn on top, so the label reads
+  // cleanly no matter where the line falls. The plate's fill matches the
+  // card background it sits on (--tm-color-black-raised) rather than the
+  // page background, since this chart is always rendered inside a .card.
   return (
     <svg viewBox={`0 0 ${w} ${h}`} className={styles.graphSvg} role="img" aria-label="CPU utilisation over time">
       <line x1="0" y1={requestedY} x2={w} y2={requestedY} stroke="currentColor" strokeDasharray="4 4" opacity="0.35" />
-      <text x="4" y={requestedY - 6} fontSize="10" fill="currentColor" opacity="0.6">
+      <path d={path} fill="none" stroke="currentColor" strokeWidth="2" />
+      <rect x="0" y={requestedY - 15} width="104" height="14" fill="var(--tm-color-black-raised)" />
+      <text x="4" y={requestedY - 6} fontSize="10" fill="currentColor" opacity="0.75">
         requested (100%)
       </text>
-      <path d={path} fill="none" stroke="currentColor" strokeWidth="2" />
     </svg>
   );
 }
@@ -140,43 +149,41 @@ function AgentDetailInner() {
               <span className={styles.badgeMuted}>{series.length} samples</span>
             </div>
             <UsageChart series={series} />
-            <table className={styles.kvTable}>
-              <tbody>
-                <tr>
-                  <th>CPU</th>
-                  <td>
-                    {pod.actualCpuMilli === null ? "no sample" : formatCpu(pod.actualCpuMilli)} of{" "}
-                    {formatCpu(pod.requestedCpuMilli)} ({formatPct(pod.cpuUtilisation)})
-                  </td>
-                </tr>
-                <tr>
-                  <th>Memory</th>
-                  <td>
-                    {pod.actualMemoryBytes === null ? "no sample" : formatMemory(pod.actualMemoryBytes)} of{" "}
-                    {formatMemory(pod.requestedMemoryBytes)} ({formatPct(pod.memoryUtilisation)})
-                  </td>
-                </tr>
-                <tr>
-                  <th>Activity</th>
-                  <td>
-                    {pod.activity
-                      ? `${pod.activity.attempts} attempts, ${pod.activity.completions} completions, ` +
-                        `${pod.activity.unfinishedTaskIds.length} unfinished`
-                      : "no activity log"}
-                  </td>
-                </tr>
-                <tr>
-                  <th>Age</th>
-                  <td>{Math.round(pod.ageSeconds)}s · {pod.restartCount} restarts</td>
-                </tr>
-                {pod.annotations["autophagy.io/standby-reason"] && (
-                  <tr>
-                    <th>Declared intent</th>
-                    <td>{pod.annotations["autophagy.io/standby-reason"]}</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+            <div className={styles.kvTable}>
+              <div className={styles.kvKey}>CPU</div>
+              <div className={styles.kvValue}>
+                {pod.actualCpuMilli === null ? "no sample" : formatCpu(pod.actualCpuMilli)} of{" "}
+                {formatCpu(pod.requestedCpuMilli)} ({formatPct(pod.cpuUtilisation)})
+              </div>
+
+              <div className={styles.kvKey}>Memory</div>
+              <div className={styles.kvValue}>
+                {pod.actualMemoryBytes === null ? "no sample" : formatMemory(pod.actualMemoryBytes)} of{" "}
+                {formatMemory(pod.requestedMemoryBytes)} ({formatPct(pod.memoryUtilisation)})
+              </div>
+
+              <div className={styles.kvKey}>Activity</div>
+              <div className={styles.kvValue}>
+                {pod.activity
+                  ? `${pod.activity.attempts} attempts, ${pod.activity.completions} completions, ` +
+                    `${pod.activity.unfinishedTaskIds.length} unfinished`
+                  : "no activity log"}
+              </div>
+
+              <div className={styles.kvKey}>Age</div>
+              <div className={styles.kvValue}>
+                {Math.round(pod.ageSeconds)}s · {pod.restartCount} restarts
+              </div>
+
+              {pod.annotations["autophagy.io/standby-reason"] && (
+                <>
+                  <div className={styles.kvKey}>Declared intent</div>
+                  <div className={styles.kvValue}>
+                    {pod.annotations["autophagy.io/standby-reason"]}
+                  </div>
+                </>
+              )}
+            </div>
           </section>
 
           <section className={styles.card}>
