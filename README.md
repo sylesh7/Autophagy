@@ -1,12 +1,15 @@
-<div>
+<div align="center">
+
 ```
-                     █████  ██    ██ ████████  ██████  ██████  ██   ██  █████   ██████  ██    ██ 
-                    ██   ██ ██    ██    ██    ██    ██ ██   ██ ██   ██ ██   ██ ██        ██  ██  
-                    ███████ ██    ██    ██    ██    ██ ██████  ███████ ███████ ██   ███   ████   
-                    ██   ██ ██    ██    ██    ██    ██ ██      ██   ██ ██   ██ ██    ██    ██    
-                    ██   ██  ██████     ██     ██████  ██      ██   ██ ██   ██  ██████     ██    
+█████  ██    ██ ████████  ██████  ██████  ██   ██  █████   ██████  ██    ██ 
+██   ██ ██    ██    ██    ██    ██ ██   ██ ██   ██ ██   ██ ██        ██  ██  
+███████ ██    ██    ██    ██    ██ ██████  ███████ ███████ ██   ███   ████   
+██   ██ ██    ██    ██    ██    ██ ██      ██   ██ ██   ██ ██    ██    ██    
+██   ██  ██████     ██     ██████  ██      ██   ██ ██   ██  ██████     ██    
 ```
+
 </div>
+
 **Behavioral waste detection and on-chain efficiency reputation for autonomous agent fleets**
 
 Instead of waiting for a monthly cloud bill to reveal waste, Autophagy sits between an orchestrator and the agent fleet it runs — watching real resource usage, reasoning about *why* a pattern is wasteful (not just flagging a threshold), and the moment a waste incident is confirmed, committing it to an on-chain Efficiency Registry tied to the agent's identity. Like a cell clearing out its own damaged components to stay healthy, the fleet audits and corrects itself — and every agent builds a permanent, portable efficiency record that any other orchestrator or marketplace can check before hiring it.
