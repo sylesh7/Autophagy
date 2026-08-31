@@ -129,6 +129,11 @@ export default function SiteScripts() {
       await loadScript(HERO_MODULE, "module");
       if (cancelled) return;
       flush();
+      // Lets any section that needs GSAP/ScrollTrigger (already registered
+      // against Lenis's scroll proxy by this point) wait for the real thing
+      // instead of polling window.gsap and risking a mistimed setup.
+      window.__siteScriptsReady = true;
+      window.dispatchEvent(new Event("site-scripts-ready"));
       loadScript(CONSENT);
     })();
 

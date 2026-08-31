@@ -9,6 +9,7 @@ import Hero from "@/components/sections/Hero";
 import ThreeStyles from "@/components/sections/ThreeStyles";
 import HiddenComponents from "@/components/sections/HiddenComponents";
 import StatementMobile from "@/components/sections/StatementMobile";
+import HowItWorks from "@/components/sections/HowItWorks";
 import Tabs from "@/components/sections/Tabs";
 import Why from "@/components/sections/Why";
 
@@ -23,6 +24,7 @@ export default function Home() {
         <ThreeStyles />
         <HiddenComponents />
         <StatementMobile />
+        <HowItWorks />
         <Tabs />
         <Why />
       </main>

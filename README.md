@@ -1,8 +1,16 @@
-# Autophagy
+```
+█████  ██    ██ ████████  ██████  ██████  ██   ██  █████   ██████  ██    ██ 
+██   ██ ██    ██    ██    ██    ██ ██   ██ ██   ██ ██   ██ ██        ██  ██  
+███████ ██    ██    ██    ██    ██ ██████  ███████ ███████ ██   ███   ████   
+██   ██ ██    ██    ██    ██    ██ ██      ██   ██ ██   ██ ██    ██    ██    
+██   ██  ██████     ██     ██████  ██      ██   ██ ██   ██  ██████     ██    
+```
 
 **Behavioral waste detection and on-chain efficiency reputation for autonomous agent fleets**
 
 Instead of waiting for a monthly cloud bill to reveal waste, Autophagy sits between an orchestrator and the agent fleet it runs — watching real resource usage, reasoning about *why* a pattern is wasteful (not just flagging a threshold), and the moment a waste incident is confirmed, committing it to an on-chain Efficiency Registry tied to the agent's identity. Like a cell clearing out its own damaged components to stay healthy, the fleet audits and corrects itself — and every agent builds a permanent, portable efficiency record that any other orchestrator or marketplace can check before hiring it.
+
+**Live:** [autophagy.vercel.app](https://autophagy.vercel.app) — the marketing site and Fleet Console frontend. The frontend alone is deployed; point its `AUTOPHAGY_API_URL` at a running backend (see [§ 8](#8-backend--services-apis-and-integration)) to see live data rather than "backend unreachable."
 
 ---
 
@@ -23,6 +31,7 @@ Instead of waiting for a monthly cloud bill to reveal waste, Autophagy sits betw
 13. [Honest Limitations](#13-honest-limitations)
 14. [Research and Prior Art](#14-research-and-prior-art)
 15. [Docs and References](#15-docs-and-references)
+16. [License](#16-license)
 
 ---
 
@@ -111,9 +120,10 @@ Autophagy does not use a single hard-coded threshold. It evaluates each anomaly 
 **Magnitude and duration** — how large is the requested-vs-actual gap, and has it persisted across multiple consecutive polling windows (not just one noisy reading)?
 
 **Pattern match** — does the observed behavior match a known signature?
-- *Retry loop*: repeated attempts at the same task ID within a short window, with zero successful completions.
+- *Retry loop*: the same task ID attempted 5 or more times with zero completions.
 - *Orphaned duplicate*: two or more agents reporting activity against the same task ID concurrently.
-- *Dead allocation*: resources requested, zero task or log activity for the full observed window.
+- *Dead allocation*: CPU under 5% of request for the whole window, with zero task activity.
+- *Sustained over-allocation*: CPU never exceeds 20% of request across the window, but the pod is doing real work.
 
 **Plausible-intentional check** — is there a signal suggesting the allocation is deliberate (a "standby" label, an agent provisioned only seconds ago where low activity is expected and not yet meaningful)?
 
@@ -176,24 +186,34 @@ The genuine substrate the Watcher observes. Not simulated — real pods, real sc
 ### metrics-server
 Standard Kubernetes component exposing live CPU/memory usage per pod. This is the same tool real production clusters use for autoscaling decisions — Autophagy reads from it, it doesn't re-implement it.
 
-### LLM Reasoning Layer (Diagnostician) — via OpenRouter
+### LLM Reasoning Layer (Diagnostician) — provider-agnostic, Groq by default
 Used specifically for the ambiguous judgment call — "is this waste or legitimate" — which a hard-coded threshold cannot answer reliably. This is the genuinely agentic part of the system, not just a decoration on top of a script.
 
-Model calls are routed through **OpenRouter** (`https://openrouter.ai/api/v1/chat/completions`) rather than a single provider's SDK, so the Diagnostician's model can be swapped (e.g., between Claude, GPT, or an open-weight model) without changing any application code — only the `model` field in the request body and the `OPENROUTER_API_KEY` environment variable. This also means judges/demo backups can switch to a cheaper or faster model instantly if rate limits are hit live.
+All model calls go through a single OpenAI-compatible `/chat/completions` shape with `response_format: json_schema, strict: true` — the Diagnostician never accepts prose it has to parse. Four providers currently implement that same shape, selected via `LLM_PROVIDER`:
+
+| Provider | Default model | Cost | Billing |
+|---|---|---|---|
+| `groq` *(default)* | `openai/gpt-oss-120b` | free | No card required |
+| `xai` | `grok-4.3` | $1.25 / $2.50 per M tokens | Credits must be purchased |
+| `openrouter` | `anthropic/claude-sonnet-4.5` | varies | Credits must be purchased |
+| `sarvam` | `sarvam-105b-conversations` | varies | Bring your own key |
+
+Groq is the default specifically because its free tier needs no payment method — switching providers is a config change only (`LLM_PROVIDER` + that provider's API key env var), never application code, so a demo backup can swap models instantly if one provider hits a rate limit live.
 
 ```javascript
-const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+const response = await fetch(providerBaseUrl + "/chat/completions", {
   method: "POST",
   headers: {
-    "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+    "Authorization": `Bearer ${apiKey}`,
     "Content-Type": "application/json"
   },
   body: JSON.stringify({
-    model: "anthropic/claude-sonnet-4.5", // swappable per demo/cost needs
+    model, // e.g. "openai/gpt-oss-120b" on Groq, swappable per demo/cost needs
     messages: [
       { role: "system", content: DIAGNOSTICIAN_SYSTEM_PROMPT },
       { role: "user", content: JSON.stringify(anomalyPayload) }
-    ]
+    ],
+    response_format: { type: "json_schema", json_schema: VERDICT_SCHEMA, strict: true }
   })
 });
 ```
@@ -220,6 +240,11 @@ Used by the Negotiator to execute the real, human-approved corrective action aga
 ### Design Principles
 Dark, monospace, operations-dashboard aesthetic. Color reserved for status only: green (healthy), amber (under review), red (confirmed waste). Numbers and identifiers in monospace; labels in sans-serif.
 
+### Landing Page (`/`)
+The public marketing site — separate from the Fleet Console below, and the first thing a visitor sees. Dark, near-black ground with a neon-yellow accent, classical-statue-meets-modern-tech art direction, GSAP/ScrollTrigger/Lenis-driven scroll animation throughout.
+
+Scrolling past the hero reaches the same pipeline explanation twice, in two different forms depending on viewport: a plain scroll-reveal statement on tablet/mobile, and on desktop, an **animated pipeline diagram** — five nodes (Watcher → Diagnostician → Negotiator → Human Approval → On-chain Attestation) connected by a line that draws itself as you scroll, each node lighting up in sequence. The icons deliberately reuse the Autophagy logo's own circle-and-diamond node vocabulary rather than a generic icon set, so the last node (on-chain attestation) reads as a condensed echo of the logo mark itself. It degrades to a fully-lit static diagram if JavaScript fails to load or the visitor has `prefers-reduced-motion` set, rather than staying half-visible.
+
 ### Page 1 — Fleet Overview
 Metric cards: total agents watched, incidents flagged today, incidents confirmed, total cost impact this session. Agent list with live status. Scrolling incident feed on the side.
 
@@ -241,15 +266,19 @@ Static explainer: the problem with budget-only limits, how the reasoning pipelin
 
 ### Endpoints
 
-**`GET /api/watch`** — Current cluster snapshot: requested vs. actual usage per pod, sourced live from metrics-server.
-
-**`POST /api/diagnose`** — Takes a flagged anomaly, returns the Diagnostician's verdict, confidence, and reasoning.
-
-**`POST /api/negotiate`** — Takes a confirmed `WASTE` verdict, returns the calculated cost impact and proposed fix.
-
-**`POST /api/approve`** — Human approval endpoint. Executes the real `kubectl` action and calls `attestIncident()` on-chain.
-
-**`GET /api/agents/:id/history`** — Pulls the agent's full on-chain efficiency history for display.
+| Endpoint | Purpose |
+|---|---|
+| `GET /api/health` | Per-dependency status; 503 if the cluster or chain is down |
+| `GET /api/watch` | Current cluster snapshot: requested vs. actual usage per pod (`?live=true` forces a fresh read) |
+| `POST /api/watch/poll` | Force one full pipeline pass |
+| `POST /api/diagnose` | Re-run a verdict by hand — takes a flagged anomaly, returns the Diagnostician's verdict, confidence, and reasoning |
+| `POST /api/negotiate` | Takes a confirmed `WASTE` verdict, returns the calculated cost impact and proposed fix |
+| `POST /api/approve` | **The human gate.** Executes the real `kubectl` action and calls `attestIncident()` on-chain |
+| `POST /api/reject` | Decline a proposal |
+| `GET /api/incidents` | All incidents plus session stats |
+| `GET /api/agents/:id/history` | Pulls the agent's full on-chain efficiency history for display |
+| `GET /api/pods/:name/series` | Utilisation series backing the Agent Detail chart |
+| `GET /api/events` | Server-sent event stream (`snapshot`, `incident`) for the live dashboard |
 
 ### Data Flow
 Watcher polls on an interval → flags anomalies → Diagnostician call → Negotiator call on confirmed waste → human approval → real cluster action + on-chain attestation → history updates.
@@ -375,11 +404,18 @@ Cloud cost tooling detects infrastructure waste at scale but treats it as a priv
 | Minikube | `https://minikube.sigs.k8s.io/docs/` |
 | ERC-8004 | `https://eips.ethereum.org/EIPS/eip-8004` |
 | Kubernetes resource management | `https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/` |
+| Groq console (default LLM provider, free tier) | `https://console.groq.com/keys` |
 | OpenRouter API docs | `https://openrouter.ai/docs` |
 | OpenRouter model list | `https://openrouter.ai/models` |
 | Base Sepolia docs | `https://docs.base.org/network-information` |
 | Base Sepolia faucet | `https://www.coinbase.com/faucets/base-sepolia-faucet` |
 | Base Sepolia explorer | `https://sepolia.basescan.org` |
+
+---
+
+## 16. License
+
+MIT — see [`LICENSE`](./LICENSE).
 
 ---
 
